@@ -11,7 +11,7 @@ modules:
       disk-quota: 512M
       memory: 512M
     requires:
-      - name: hcbreakdown_destination
+      - name: headcount_destination
       - name: hcbreakdown_html5_repo_runtime
       - name: hcbreakdown_uaa
       - name: user_api
@@ -52,11 +52,8 @@ modules:
     requires:
       - name: hcbreakdown_uaa
 resources:
-  - name: hcbreakdown_destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service-plan: lite
-      service: destination
+  - name: headcount_destination
+    type: org.cloudfoundry.existing-service 
   - name: hcbreakdown_html5_repo_host
     type: org.cloudfoundry.managed-service
     parameters:

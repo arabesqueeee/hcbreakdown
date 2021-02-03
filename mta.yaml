@@ -14,6 +14,12 @@ modules:
       - name: hcbreakdown_destination
       - name: hcbreakdown_html5_repo_runtime
       - name: hcbreakdown_uaa
+      - name: user_api
+        group: destinations
+        properties:
+          name: user_api
+          url: '~{url}'
+          forwardAuthToken: true
   - name: webapp_deployer
     type: com.sap.application.content
     path: deployer
@@ -36,6 +42,15 @@ modules:
       commands:
         - npm run build:uimodule --prefix ..
       supported-platforms: []
+  - name: user_breakdown
+    type: nodejs
+    path: user_breakdown
+    provides:
+      - name: user_api
+        properties:
+          url: '${default-url}'
+    requires:
+      - name: hcbreakdown_uaa
 resources:
   - name: hcbreakdown_destination
     type: org.cloudfoundry.managed-service

@@ -90,6 +90,18 @@ sap.ui.define([
       this.getView().setModel(new JSONModel(vs), "vsdl");
       this.getView().setModel(new JSONModel(vs), "vsidl");
 
+      $.ajax({
+                url: "/user/user",
+                method: "GET",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    sap.ui.getCore().userid = data.id;
+                },
+                error: function () {
+                }
+            });
+
     },
     onSaveYearReq: function (oEvent) {
       var dialog = new sap.m.BusyDialog({
@@ -561,7 +573,7 @@ sap.ui.define([
       //   sign = 'N';
       // }
 
-      //update dltotal and idl 
+      //update dltotal and idl
       // var orgPath = oEvent.getSource().getBindingContext("bd").getPath();
       // var bdDetail = this.getView().getModel("bd").getProperty(orgPath);
 

@@ -50,7 +50,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
       var that = this;
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectPeriod/ASTREQ",
+        url: "/ou/selectPeriod/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -134,7 +134,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postData);
 
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/batchSave",
+        url: "/ou/batchSave",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -169,7 +169,7 @@ sap.ui.define([
         var postJson = JSON.stringify(postBody);
         var that = this;
         $.ajax({
-          url: "http://127.0.0.1:10019/ou/selectPeriod/ASTREQ",
+          url: "/ou/selectPeriod/ASTREQ",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -221,7 +221,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
       var that = this;
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOUBySearchModelByType/ASTREQ",
+        url: "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -250,7 +250,7 @@ sap.ui.define([
       postBody.staus = '05';
       postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOUBySearchModelByType/ASTREQ",
+        url: "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -287,7 +287,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOrgId",
+        url: "/ou/selectOrgId",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -334,7 +334,7 @@ sap.ui.define([
 
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOUBySearchModelByType/ASTREQ",
+        url: "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -374,7 +374,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOUBySearchModelByType/ASTREQ",
+        url: "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -404,7 +404,7 @@ sap.ui.define([
       var type = this.byId("comType").getSelectedKey();
       var that = this;
       $.ajax({
-        url: "http://127.0.0.1:10019/breakDown/selectEmpBreakDownInfo" + "/001602/" + type + "/" + orgId,
+        url: "/breakDown/selectEmpBreakDownInfo" + "/001602/" + type + "/" + orgId,
         method: "GET",
         dataType: "json",
         async: false,
@@ -440,7 +440,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "http://127.0.0.1:10019/ouadjust/selectOuAdjust",
+        url: "/ouadjust/selectOuAdjust",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -670,7 +670,7 @@ sap.ui.define([
         }
         var postJson = JSON.stringify(postData);
         $.ajax({
-          url: "http://127.0.0.1:10019/breakDown/batchSave",
+          url: "/breakDown/batchSave",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -707,7 +707,7 @@ sap.ui.define([
         var postJson = JSON.stringify(postBody);
 
         $.ajax({
-          url: "http://127.0.0.1:10019/ou/selectOrgId",
+          url: "/ou/selectOrgId",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -750,7 +750,7 @@ sap.ui.define([
       //postBody.quarter = period.substring(4, 6);
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOrgIdRpt",
+        url: "/ou/selectOrgIdRpt",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -806,7 +806,7 @@ sap.ui.define([
       postBody.empId = '001602';
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "http://127.0.0.1:10019/ou/selectOUBySearchModelRpt",
+        url: "/ou/selectOUBySearchModelRpt",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -855,7 +855,7 @@ sap.ui.define([
         postBody.quarter = period.substring(4, 6);
         var postJson = JSON.stringify(postBody);
         $.ajax({
-          url: "http://127.0.0.1:10019/ou/selectOrgId",
+          url: "/ou/selectOrgId",
           method: "POST",
           dataType: "json",
           data: postJson,

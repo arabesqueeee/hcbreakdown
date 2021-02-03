@@ -1,8 +1,32 @@
 {
   "welcomeFile": "comtsmchcbreakdown/",
-  "authenticationMethod": "none",
+  "authenticationMethod": "route",
   "logout": {
     "logoutEndpoint": "/do/logout"
   },
-  "routes": []
+  "routes": [
+    {
+      "source": "^/ou(.*)$",
+      "destination": "mainservice",
+      "csrfProtection": false,
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/breakDown(.*)$",
+      "destination": "mainservice",
+      "csrfProtection": false,
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/ouadjust(.*)$",
+      "destination": "mainservice",
+      "csrfProtection": false,
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/user(.*)$",
+      "target": "$1",
+      "destination": "user_api"
+    }
+  ]
 }

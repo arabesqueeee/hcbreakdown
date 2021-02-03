@@ -1,0 +1,6 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <SelectDialog title="組織單位" items="{ path: 'orgIdHelp>/OrgCollection'}" search="DepartmentInSearch" 
+	confirm="orgHelpDialogConfirm" cancel="orgHelpDialogConfirm">
+        <StandardListItem  title="組織單位:{orgIdHelp>org}" description="文本:{orgIdHelp>orgName} 期间:{orgIdHelp>year}{orgIdHelp>quarter}" />
+    </SelectDialog>
+</core:FragmentDefinition>

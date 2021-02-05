@@ -5,7 +5,7 @@ const passport = require('passport');
 const xsenv = require('@sap/xsenv');
 const JWTStrategy = require('@sap/xssec').JWTStrategy;
 const app = express();
-const services = xsenv.getServices({ uaa: 'headcount_uaa' });
+const services = xsenv.getServices({ uaa: 'hcbreakdown_uaa' });
 
 passport.use(new JWTStrategy(services.uaa));
 

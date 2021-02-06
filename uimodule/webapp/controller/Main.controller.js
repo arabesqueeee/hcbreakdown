@@ -91,16 +91,16 @@ sap.ui.define([
       this.getView().setModel(new JSONModel(vs), "vsidl");
 
       $.ajax({
-                url: "/user/user",
-                method: "GET",
-                dataType: "json",
-                async: false,
-                success: function (data) {
-                    sap.ui.getCore().userid = data.id;
-                },
-                error: function () {
-                }
-            });
+        url: "/user/user",
+        method: "GET",
+        dataType: "json",
+        async: false,
+        success: function (data) {
+          sap.ui.getCore().userid = data.id;
+        },
+        error: function () {
+        }
+      });
 
     },
     onSaveYearReq: function (oEvent) {
@@ -899,6 +899,15 @@ sap.ui.define([
       } else {
 
       }
+
+    },
+    DepartmentInSearch: function (oEvent) {
+      var sValue = oEvent.getParameter("value");
+      var oFilter = new Filter(
+        "org",
+        sap.ui.model.FilterOperator.Contains, sValue
+      );
+      oEvent.getSource().getBinding("items").filter([oFilter]);
 
     }
   });

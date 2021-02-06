@@ -417,7 +417,7 @@ sap.ui.define([
       var type = this.byId("comType").getSelectedKey();
       var that = this;
       $.ajax({
-        url: "/breakDown/selectEmpBreakDownInfo" + "/001602/" + type + "/" + orgId,
+        url: "/breakDown/selectEmpBreakDownInfo" + "/001602/" + type + "/" + orgId + "/" + period,
         method: "GET",
         dataType: "json",
         async: false,

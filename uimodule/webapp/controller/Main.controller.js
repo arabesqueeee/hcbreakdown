@@ -4,8 +4,9 @@ sap.ui.define([
   "sap/m/MessageBox",
   "sap/m/MessageToast",
   'sap/ui/export/Spreadsheet',
-  "sap/ui/core/Fragment"
-], function (Controller, JSONModel, MessageBox, MessageToast, Spreadsheet, Fragment) {
+  "sap/ui/core/Fragment",
+  "sap/ui/model/Filter"
+], function (Controller, JSONModel, MessageBox, MessageToast, Spreadsheet, Fragment, Filter) {
   "use strict";
 
   return Controller.extend("com.tsmc.hcbreakdown.controller.Main", {
@@ -299,7 +300,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "/ou/selectOrgId",
+        url: "/ou/selectOrgIdBd",
         method: "POST",
         dataType: "json",
         data: postJson,

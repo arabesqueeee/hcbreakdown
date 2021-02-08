@@ -466,7 +466,7 @@
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <Input id="bdorgid"  width="20%" value="{filter>/orgid}" 	showValueHelp="true" 	valueHelpRequest=".onValueHelpBdOrgid">
+                                    <Input id="bdorgid"  width="20%"  showValueHelp="true" 	valueHelpRequest=".onValueHelpBdOrgid">
                                         <layoutData>
                                             <l:GridData span="XL8 L8 M8 S12" />
                                         </layoutData>
@@ -523,7 +523,6 @@
                                             <ToolbarSpacer/>
                                             <Button icon="sap-icon://validate" press="bdCalculate"  type="Transparent" id="onCalculate" text="檢查"/>
                                             <Button icon="sap-icon://copy" press="onCopyFrom"  type="Transparent" id="onCopyFrom" text="複製上一條"/>
-                                            <Button icon="sap-icon://sys-cancel" press="onClearAll" type="Transparent"  id="onClearAll" text="清除"/>
                                             <Button icon="sap-icon://save" press="onSaveBd" type="Transparent" id="onSaveBd" text="保存"/>
                                         </OverflowToolbar>
                                     </ui:extension>
@@ -576,7 +575,7 @@
                                     <ui:Column >
                                         <Label text="6X" />
                                         <ui:template>
-                                            <Input id="iclass2" valueState="{vsdl>/state}"  value="{bd>class2}" type="Number"  />
+                                            <Input id="iclass2" valueState="{vsdl>/state}" liveChange="decimalCheck" value="{bd>class2}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column >

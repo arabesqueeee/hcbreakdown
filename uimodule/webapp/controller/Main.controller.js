@@ -620,6 +620,9 @@ sap.ui.define([
       // this.getView().getModel("bd").setProperty(orgPath, bdDetail);
       // tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       this.getView().setModel(new JSONModel(footer), "footer");
+      if (!this.decimalCheck()) {
+        return;
+      }
       this.onValidCheck();
 
     },
@@ -653,12 +656,17 @@ sap.ui.define([
       } else {
         this.getView().getModel("vsdl").setProperty("/state", "None")
       }
+
       return true;
     },
     onSaveBd: function () {
       var sign = this.onValidCheck();
       if (sign == false) {
         MessageToast.show("無法保存");
+        return;
+      }
+      if (!this.decimalCheck()) {
+        MessageToast.show("請輸入合法數字");
         return;
       }
       var tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
@@ -909,6 +917,72 @@ sap.ui.define([
         sap.ui.model.FilterOperator.Contains, sValue
       );
       oEvent.getSource().getBinding("items").filter([oFilter]);
+
+    },
+    onCopyFrom: function () {
+      //get breakdown year quarter org 
+      var postBody = {};
+      var that = this;
+      var bdinfo = this.getView().getModel("bdinfo").getData();
+      postBody.org = this.byId("bdorgid").getValue();
+      postBody.year = this.byId("bdinfoperiod").getText().substring(0, 4);
+      postBody.quarter = this.byId("bdinfoperiod").getText().substring(4, 6);
+      var postJson = JSON.stringify(postBody);
+      $.ajax({
+        url: "/breakDown/getLstBd",
+        method: "POST",
+        dataType: "json",
+        data: postJson,
+        async: false,
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Content-Type", "application/json");
+        },
+        success: function (data) {
+          var tableData = that.getView().getModel("bd").getProperty("/OrgCollection");
+          for (var i = 0; i < tableData.length; i++) {
+            for (var j = 0; j < data.result.length; j++) {
+              if (tableData[i].org == data.result[j].org) {
+                tableData[i].class1 = data.result[j].class1;
+                tableData[i].class2 = data.result[j].class2;
+                tableData[i].class3 = data.result[j].class3;
+                tableData[i].class4 = data.result[j].class4;
+                tableData[i].class5 = data.result[j].class5;
+                tableData[i].class6 = data.result[j].class6;
+                break;
+
+              }
+            }
+          }
+          var res = {};
+          res.OrgCollection = tableData;
+          that.getView().setModel(new JSONModel(res), "bd");
+
+        },
+        error: function () {
+        }
+      });
+    },
+    decimalCheck: function (oEvent) {
+      var j = 0;
+      var tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
+      for (var i = 0; i < tableData.length; i++) {
+        if (this.isNumber(tableData[i].class1) && this.isNumber(tableData[i].class2) &&
+          this.isNumber(tableData[i].class3) && this.isNumber(tableData[i].class4) &&
+          this.isNumber(tableData[i].class5) && this.isNumber(tableData[i].class6)) {
+
+        } else {
+          return false;
+        }
+
+      }
+      return true;
+    },
+    isNumber: function (num) {
+      if (! /^\d+$/.test(num)) {
+        return false;
+      } else {
+        return true;
+      }
 
     }
   });

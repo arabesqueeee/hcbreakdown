@@ -475,6 +475,11 @@ sap.ui.define([
       });
     },
     bdCalculate: function (oEvent) {
+
+      if (!this.decimalCheck()) {
+        MessageToast.show("請輸入合法數字");
+        return;
+      }
       var tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       var footer = {
         class1: 0,
@@ -620,9 +625,7 @@ sap.ui.define([
       // this.getView().getModel("bd").setProperty(orgPath, bdDetail);
       // tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       this.getView().setModel(new JSONModel(footer), "footer");
-      if (!this.decimalCheck()) {
-        return;
-      }
+
       this.onValidCheck();
 
     },
@@ -966,9 +969,12 @@ sap.ui.define([
       var j = 0;
       var tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       for (var i = 0; i < tableData.length; i++) {
-        if (this.isNumber(tableData[i].class1) && this.isNumber(tableData[i].class2) &&
-          this.isNumber(tableData[i].class3) && this.isNumber(tableData[i].class4) &&
-          this.isNumber(tableData[i].class5) && this.isNumber(tableData[i].class6)) {
+        if (this.isNumber(this.custParseInt(tableData[i].class1)) &&
+          this.isNumber(this.custParseInt(tableData[i].class2)) &&
+          this.isNumber(this.custParseInt(tableData[i].class3)) &&
+          this.isNumber(this.custParseInt(tableData[i].class4)) &&
+          this.isNumber(this.custParseInt(tableData[i].class5)) &&
+          this.isNumber(this.custParseInt(tableData[i].class6))) {
 
         } else {
           return false;

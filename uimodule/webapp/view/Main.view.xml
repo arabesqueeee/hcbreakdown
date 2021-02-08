@@ -575,7 +575,7 @@
                                     <ui:Column >
                                         <Label text="6X" />
                                         <ui:template>
-                                            <Input id="iclass2" valueState="{vsdl>/state}" liveChange="decimalCheck" value="{bd>class2}" type="Number"  />
+                                            <Input id="iclass2" valueState="{vsdl>/state}"  value="{bd>class2}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column >

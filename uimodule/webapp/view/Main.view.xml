@@ -466,11 +466,28 @@
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <Input id="bdorgid"  width="20%"  showValueHelp="true" 	valueHelpRequest=".onValueHelpBdOrgid">
+                                    <Input id="bdorgid" showValueHelp="true" 	valueHelpRequest=".onValueHelpBdOrgid">
                                         <layoutData>
-                                            <l:GridData span="XL8 L8 M8 S12" />
+                                            <l:GridData span="XL2 L2 M2 S12" />
                                         </layoutData>
                                     </Input>
+                                    <Label text="生效日期"    >
+                                        <layoutData>
+                                            <l:GridData span="XL1 L1 M1 S12" />
+                                        </layoutData>
+                                    </Label>
+                                    <!--="{bdinfo>/effectiveDte}"-->
+                                    <ComboBox id = "bdeffectivedte"  
+                                    width="30%"
+                                    selectionChange="effectivedteChange"
+                                    items="{
+					                        path: 'effe>/list' 
+			                        	}">
+                                        <core:Item key="{effe>dte}" text="{effe>dte}" />
+                                        <layoutData>
+                                            <l:GridData span="XL5 L5 M5 S12" />
+                                        </layoutData>
+                                    </ComboBox>
                                     <Label text="期间" >
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
@@ -497,16 +514,6 @@
                                         </layoutData>
                                     </Label>
                                     <Text text="{bdinfo>/finalIDL}">
-                                        <layoutData>
-                                            <l:GridData span="XL1 L1 M1 S12" />
-                                        </layoutData>
-                                    </Text>
-                                    <Label text="生效日期"    >
-                                        <layoutData>
-                                            <l:GridData span="XL1 L1 M1 S12" />
-                                        </layoutData>
-                                    </Label>
-                                    <Text text="{bdinfo>/effectiveDte}">
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>

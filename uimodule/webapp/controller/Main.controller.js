@@ -452,6 +452,7 @@ sap.ui.define([
       postBody.org = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
       var postJson = JSON.stringify(postBody);
 
+      //获取当前季度所有的breakdown的生效日期  
       $.ajax({
         url: "/ouadjust/selectOuAdjust",
         method: "POST",
@@ -463,16 +464,30 @@ sap.ui.define([
         },
         success: function (data) {
           if (data.success == true) {
+            var effeArray = [], pieceEffe = {};
+            for (var j = 0; j < data.result.length; j++) {
+              pieceEffe.dte = data.result[j].effectiveDte;
+              effeArray.push(pieceEffe);
+            }
+            var effeJsn = {};
+            effeJsn.list = effeArray;
+            that.getView().setModel(new JSONModel(effeJsn), "effe");
+
             var i = data.result.length;
             i = i - 1;
             var pieceJsn = data.result[i];
             that.getView().setModel(new JSONModel(pieceJsn), "bdinfo");
+            that.byId("bdeffectivedte").setSelectedKey(pieceJsn.effectiveDte);
+
           } else {
           }
         },
         error: function () {
         }
       });
+
+
+
     },
     bdCalculate: function (oEvent) {
 
@@ -867,6 +882,13 @@ sap.ui.define([
         return parseInt(num);
       }
     },
+    custParse: function (num) {
+      if (num == null || num == '') {
+        return 0;
+      } else {
+        return num;
+      }
+    },
     onValueHelpQROrgid: function (oEvent) {
       //read value help list
       var period = this.byId("comPeriodReq").getSelectedKey();
@@ -969,12 +991,12 @@ sap.ui.define([
       var j = 0;
       var tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       for (var i = 0; i < tableData.length; i++) {
-        if (this.isNumber(this.custParseInt(tableData[i].class1)) &&
-          this.isNumber(this.custParseInt(tableData[i].class2)) &&
-          this.isNumber(this.custParseInt(tableData[i].class3)) &&
-          this.isNumber(this.custParseInt(tableData[i].class4)) &&
-          this.isNumber(this.custParseInt(tableData[i].class5)) &&
-          this.isNumber(this.custParseInt(tableData[i].class6))) {
+        if (this.isNumber(this.custParse(tableData[i].class1)) &&
+          this.isNumber(this.custParse(tableData[i].class2)) &&
+          this.isNumber(this.custParse(tableData[i].class3)) &&
+          this.isNumber(this.custParse(tableData[i].class4)) &&
+          this.isNumber(this.custParse(tableData[i].class5)) &&
+          this.isNumber(this.custParse(tableData[i].class6))) {
 
         } else {
           return false;
@@ -989,6 +1011,10 @@ sap.ui.define([
       } else {
         return true;
       }
+
+    },
+    effectivedteChange: function (oEvent) {
+      var effectiveDte = oEvent.getParameter("selectedItem").getKey();
 
     }
   });

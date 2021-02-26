@@ -439,11 +439,7 @@
                                     </ui:Column>
                                 </ui:Table>
                             </IconTabFilter>
-                            <IconTabFilter
-				icon="sap-icon://compare"
-				iconColor="Positive"  
-				text="下達"
-				key="breakdown" >
+                            <IconTabFilter icon="sap-icon://compare" iconColor="Positive"   text="下達" key="breakdown" >
                                 <form:SimpleForm  layout="ResponsiveGridLayout" columnsXL="1" columnsL="1" columnsM="1">
                                     <Label text="設定填報類型"  required="true" >
                                         <layoutData>
@@ -457,6 +453,21 @@
 				                        	sorter: { path: 'text' }
 			                        	}">
                                         <core:Item key="{type>Id}" text="{type>Id} {type>Text}" />
+                                        <layoutData>
+                                            <l:GridData span="XL1 L1 M1 S12" />
+                                        </layoutData>
+                                    </ComboBox>
+                                    <Label text="期间"  required="true" >
+                                        <layoutData>
+                                            <l:GridData span="XL1 L1 M1 S12" />
+                                        </layoutData>
+                                    </Label>
+                                    <ComboBox id = "bdinfoperiod"   
+                                     
+                                    items="{
+					                        path: 'bdperiod>/list' 
+			                        	}">
+                                        <core:Item key="{bdperiod>period}" text="{bdperiod>period}" />
                                         <layoutData>
                                             <l:GridData span="XL2 L2 M2 S12" />
                                         </layoutData>
@@ -477,27 +488,17 @@
                                         </layoutData>
                                     </Label>
                                     <!--="{bdinfo>/effectiveDte}"-->
-                                    <ComboBox id = "bdeffectivedte"  
-                                    width="30%"
+                                    <ComboBox id = "bdeffectivedte"   
                                     selectionChange="effectivedteChange"
+                                    width="60%"
                                     items="{
 					                        path: 'effe>/list' 
 			                        	}">
                                         <core:Item key="{effe>dte}" text="{effe>dte}" />
                                         <layoutData>
-                                            <l:GridData span="XL5 L5 M5 S12" />
+                                            <l:GridData span="XL3 L3 M3 S12" />
                                         </layoutData>
                                     </ComboBox>
-                                    <Label text="期间" >
-                                        <layoutData>
-                                            <l:GridData span="XL1 L1 M1 S12" />
-                                        </layoutData>
-                                    </Label>
-                                    <Text  id="bdinfoperiod">
-                                        <layoutData>
-                                            <l:GridData span="XL1 L1 M1 S12" />
-                                        </layoutData>
-                                    </Text>
                                     <Label text="DL">
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />

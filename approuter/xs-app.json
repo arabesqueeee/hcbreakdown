@@ -18,15 +18,21 @@
       "authenticationType": "none"
     },
     {
+      "source": "^/ec(.*)$",
+      "destination": "mainservice",
+      "csrfProtection": false,
+      "authenticationType": "none"
+    },
+    {
       "source": "^/ouadjust(.*)$",
       "destination": "mainservice",
       "csrfProtection": false,
       "authenticationType": "none"
     },
     {
-      "source": "^/user(.*)$",
+      "source": "^/user-api(.*)$",
       "target": "$1",
-      "destination": "user_api"
+      "service": "sap-approuter-userapi"
     }
   ]
 }

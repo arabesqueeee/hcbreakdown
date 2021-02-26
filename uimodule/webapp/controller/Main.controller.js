@@ -12,6 +12,18 @@ sap.ui.define([
   return Controller.extend("com.tsmc.hcbreakdown.controller.Main", {
 
     onInit: function () {
+
+      //change local or cloud
+      this.local = false;
+      this.cloud = true;
+
+      if (this.local) {
+        this.url = "http://127.0.0.1:10019";
+        sap.ui.getCore().userid = 'wang.yiqiong@accenture.com';
+      } else {
+        this.url = "";
+      }
+
       var obk1 = {
         "list": [{
           "Id": "",
@@ -47,11 +59,11 @@ sap.ui.define([
 
       var postBody = {};
       postBody.type = '01';
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       var postJson = JSON.stringify(postBody);
       var that = this;
       $.ajax({
-        url: "/ou/selectPeriod/ASTREQ",
+        url: this.url + "/ou/selectPeriod/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -92,16 +104,35 @@ sap.ui.define([
       this.getView().setModel(new JSONModel(vs), "vsidl");
 
       $.ajax({
-        url: "/user/user",
+        url: "/user-api/currentUser",
         method: "GET",
         dataType: "json",
         async: false,
         success: function (data) {
-          sap.ui.getCore().userid = data.id;
+          sap.ui.getCore().userid = data.email;
         },
         error: function () {
         }
       });
+
+      if (sap.ui.getCore().userid != undefined) {
+        $.ajax(
+          {
+            url: this.url + "/ecuser/getEmpId/" + sap.ui.getCore().userid,
+            method: "GET",
+            dataType: "json",
+            async: false,
+            beforeSend: function (xhr) {
+              xhr.setRequestHeader("Content-Type", "application/json");
+            },
+            success: function (data) {
+              sap.ui.getCore().userid = data.result.empId;
+            },
+            error: function () {
+
+            }
+          });
+      }
 
     },
     onSaveYearReq: function (oEvent) {
@@ -147,7 +178,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postData);
 
       $.ajax({
-        url: "/ou/batchSave",
+        url: this.url + "/ou/batchSave",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -166,9 +197,43 @@ sap.ui.define([
       });
 
     },
-    typeChangeBreakDown: function () {
+    typeChangeBreakDown: function (oEvent) {
+      var type = this.getView().byId("comType").getSelectedItem().getKey();
+      var postBody = {};
+      postBody.type = type;
+      postBody.empId = sap.ui.getCore().userid;
+      var postJson = JSON.stringify(postBody);
+      var that = this;
+      $.ajax({
+        url: this.url + "/ou/selectPeriod/BDOWN",
+        method: "POST",
+        dataType: "json",
+        data: postJson,
+        async: false,
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Content-Type", "application/json");
+        },
+        success: function (data) {
+          if (data.success == true) {
+            var arrayRes = [];
+            var list = {};
+            for (var i = 0; i < data.result.length; i++) {
+              var pieceJsn = {};
+              pieceJsn.period = data.result[i].year + data.result[i].quarter;
+              arrayRes.push(pieceJsn);
+            }
+
+            list.list = arrayRes
+            that.getView().setModel(new JSONModel(list), "bdperiod");
+          } else {
+          }
+        },
+        error: function () {
+        }
+      });
 
     },
+
     typeChangeReport: function () {
 
     },
@@ -178,11 +243,11 @@ sap.ui.define([
 
         var postBody = {};
         postBody.type = '02';
-        postBody.empId = '001602';
+        postBody.empId = sap.ui.getCore().userid;
         var postJson = JSON.stringify(postBody);
         var that = this;
         $.ajax({
-          url: "/ou/selectPeriod/ASTREQ",
+          url: this.url + "/ou/selectPeriod/ASTREQ",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -210,6 +275,7 @@ sap.ui.define([
           }
         });
       }
+
     },
     checkNumber: function (oEvent) {
       var value = oEvent.getParameters("value").value;
@@ -227,14 +293,14 @@ sap.ui.define([
       var selectedPeriod = this.getView().byId("comPeriodReq").getSelectedItem();
       var postBody = {};
       postBody.type = '02';
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       postBody.year = selectedPeriod.getKey().substring(0, 4);
       postBody.quarter = selectedPeriod.getKey().substring(4, 6);
 
       var postJson = JSON.stringify(postBody);
       var that = this;
       $.ajax({
-        url: "/ou/selectOUBySearchModelByType/ASTREQ",
+        url: this.url + "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -257,13 +323,13 @@ sap.ui.define([
       //查着年度可参考的
       postBody = {};
       postBody.type = '01';
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       postBody.year = selectedPeriod.getKey().substring(0, 4);
       postBody.quarter = selectedPeriod.getKey().substring(4, 6);
       postBody.staus = '05';
       postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "/ou/selectOUBySearchModelByType/ASTREQ",
+        url: this.url + "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -287,11 +353,19 @@ sap.ui.define([
     onValueHelpBdOrgid: function (oEvent) {
       var sInputValue = oEvent.getSource().getValue();
       this.inputId = oEvent.getSource().getId();
+      var type = this.byId("comType").getSelectedKey();
+      var period = this.byId("bdinfoperiod").getSelectedKey();
+      if (type == "" || period == "") {
+        MessageToast.show("請輸入必填字段");
+        return;
+      }
       //read value help list
       var postBody = {};
       var that = this;
-      postBody.empId = '001602';
-      postBody.type = this.byId("comType").getSelectedKey();
+      postBody.empId = sap.ui.getCore().userid;
+      postBody.type = type;
+      postBody.year = period.substring(0, 4);
+      postBody.quarter = period.substring(4, 6);
       if (postBody.type == '01') {
         postBody.staus = '03';
       } else if (postBody.type == '02') {
@@ -300,7 +374,7 @@ sap.ui.define([
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "/ou/selectOrgIdBd",
+        url: this.url + "/ou/selectOrgIdBd",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -340,14 +414,14 @@ sap.ui.define([
       var that = this;
       var postBody = {};
       postBody.type = '02';
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       postBody.year = year;
       postBody.quarter = quarter;
       postBody.org = orgId;
 
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "/ou/selectOUBySearchModelByType/ASTREQ",
+        url: this.url + "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -380,14 +454,14 @@ sap.ui.define([
       var that = this;
       var postBody = {};
       postBody.type = '01';
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       postBody.year = year;
       postBody.orgId = orgId;
 
       var postJson = JSON.stringify(postBody);
 
       $.ajax({
-        url: "/ou/selectOUBySearchModelByType/ASTREQ",
+        url: this.url + "/ou/selectOUBySearchModelByType/ASTREQ",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -413,11 +487,10 @@ sap.ui.define([
       var orgId = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
       var period = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year + oSelectedItem.getBindingContext("orgIdHelp").getProperty().quarter;
       this.byId("bdorgid").setValue(orgId);
-      this.byId("bdinfoperiod").setText(period);
       var type = this.byId("comType").getSelectedKey();
       var that = this;
       $.ajax({
-        url: "/breakDown/selectEmpBreakDownInfo" + "/001602/" + type + "/" + orgId + "/" + period,
+        url: this.url + "/breakDown/selectEmpBreakDownInfo/" + sap.ui.getCore().userid + "/" + type + "/" + orgId + "/" + period + "/INITIAL",
         method: "GET",
         dataType: "json",
         async: false,
@@ -429,6 +502,18 @@ sap.ui.define([
             //   result.OrgCollection[i].dltotal = result.OrgCollection[i].class1 + result.OrgCollection[i].class2;
             //   result.OrgCollection[i].idltotal = result.OrgCollection[i].class3 + result.OrgCollection[i].class4 + result.OrgCollection[i].class5 + result.OrgCollection[i].class6;
             // }
+            // that.byId("bdeffectivedte").setSelectedItemId(data.result[0].effectiveDte);
+            var effeJsn = {}, effeArray = [], pieceEffe = {};
+            pieceEffe.dte = data.result[0].effectiveDte;
+            effeArray.push(pieceEffe);
+            effeJsn.list = effeArray;
+            that.getView().setModel(new JSONModel(effeJsn), "effe");
+            that.byId("bdeffectivedte").setSelectedKey(pieceEffe.dte);
+
+            var compare = {};
+            compare.bdLstUpdDte = data.result[0].lstUpdDte;
+            compare.effectiveDte = data.result[0].effectiveDte;
+            that.getView().setModel(new JSONModel(compare), "compare");
 
             that.getView().setModel(new JSONModel(result), "bd");
             that.getView().getModel("footer").setProperty("/class1", 0);
@@ -454,7 +539,7 @@ sap.ui.define([
 
       //获取当前季度所有的breakdown的生效日期  
       $.ajax({
-        url: "/ouadjust/selectOuAdjust",
+        url: this.url + "/ouadjust/selectOuAdjust",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -464,22 +549,54 @@ sap.ui.define([
         },
         success: function (data) {
           if (data.success == true) {
-            var effeArray = [], pieceEffe = {};
-            for (var j = 0; j < data.result.length; j++) {
-              pieceEffe.dte = data.result[j].effectiveDte;
-              effeArray.push(pieceEffe);
-            }
-            var effeJsn = {};
-            effeJsn.list = effeArray;
-            that.getView().setModel(new JSONModel(effeJsn), "effe");
+            var effeArray = [], pieceEffe = {}, pieceJsn = {};
+            var sign = "";
+            var compare = that.getView().getModel("compare").getData();
+            if (data.result.length > 0) {
+              for (var j = 0; j < data.result.length; j++) {
+                if (data.result[j].effectiveDte == compare.effectiveDte) {
+                  //已存在相同生效日期的数据，
+                  pieceJsn = {}
+                  pieceJsn = data.result[j];
+                  that.getView().setModel(new JSONModel(pieceJsn), "bdinfo");
+                  sign = "X";
+                  if (data.result[j].lstUpdDte > compare.lstUpdDte) { //如果调整的日期大于breakdown的日期，则提示可能会有更新 
 
-            var i = data.result.length;
-            i = i - 1;
-            var pieceJsn = data.result[i];
-            that.getView().setModel(new JSONModel(pieceJsn), "bdinfo");
-            that.byId("bdeffectivedte").setSelectedKey(pieceJsn.effectiveDte);
+                    MessageToast.show("員額數量可能存在更新，請檢查！");
+                  }
+                }
+                pieceEffe = {};
+                pieceEffe.dte = data.result[j].effectiveDte;
+                effeArray.push(pieceEffe);
+              }
+              var effeJsn = {};
+              effeJsn.list = effeArray;
+              that.getView().setModel(new JSONModel(effeJsn), "effe");
+
+
+              var i = data.result.length;
+              i = i - 1;
+              var pieceJsn = data.result[i];
+              if (sign == "") {
+                that.getView().setModel(new JSONModel(pieceJsn), "bdinfo");
+                that.byId("bdeffectivedte").setSelectedKey(pieceJsn.effectiveDte);
+              }
+              if (pieceJsn.effectiveDte > compare.effectiveDte) {
+                MessageToast.show("存在新的生效日期的員額數量，請選擇新的生效日期進行下達！");
+              }
+            } else {
+              //   that.getView().byId("bdeffectivedte").setSelectedKey(compare.effectiveDte);
+              var effeJsn = {}, effeArray = [], pieceEffe = {};
+              pieceEffe.dte = compare.effectiveDte;
+              effeArray.push(pieceEffe);
+              effeJsn.list = effeArray;
+              that.getView().setModel(new JSONModel(effeJsn), "effe");
+              that.byId("bdeffectivedte").setSelectedKey(compare.effectiveDte);
+            }
+
 
           } else {
+
           }
         },
         error: function () {
@@ -506,8 +623,8 @@ sap.ui.define([
         dltotal: 0,
         idltotal: 0
       };
-      var columnid = oEvent.getParameter("id");
-      var sign;
+      //  var columnid = oEvent.getParameter("id");
+      // var sign;
 
       for (var i = 0; i < tableData.length; i++) {
         if (tableData[i].class1 !== null) {
@@ -659,7 +776,13 @@ sap.ui.define([
       } else {
         finalIDL = 0;
       }
-      var footer = this.getView().getModel("footer").getData();
+      var footer;
+      if (this.getView().getModel("footer") != undefined) {
+        footer = this.getView().getModel("footer").getData();
+      } else {
+        this.bdCalculate();
+        footer = this.getView().getModel("footer").getData();
+      }
 
       if (footer.idltotal > finalIDL) {
         this.getView().getModel("vsidl").setProperty("/state", "Error")
@@ -709,7 +832,7 @@ sap.ui.define([
         }
         var postJson = JSON.stringify(postData);
         $.ajax({
-          url: "/breakDown/batchSave",
+          url: this.url + "/breakDown/batchSave",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -740,13 +863,13 @@ sap.ui.define([
 
         var postBody = {};
         var that = this;
-        postBody.empId = '001602';
+        postBody.empId = sap.ui.getCore().userid;
         postBody.year = year;
         postBody.type = '01'
         var postJson = JSON.stringify(postBody);
 
         $.ajax({
-          url: "/ou/selectOrgId",
+          url: this.url + "/ou/selectOrgId",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -783,13 +906,13 @@ sap.ui.define([
 
       var postBody = {};
       var that = this;
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       // postBody.type = '02';
       //postBody.year = period.substring(0, 4);
       //postBody.quarter = period.substring(4, 6);
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "/ou/selectOrgIdRpt",
+        url: this.url + "/ou/selectOrgIdRpt",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -842,10 +965,10 @@ sap.ui.define([
       postBody.quarter = quarter;
       postBody.type = type;
       postBody.org = org;
-      postBody.empId = '001602';
+      postBody.empId = sap.ui.getCore().userid;
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "/ou/selectOUBySearchModelRpt",
+        url: this.url + "/ou/selectOUBySearchModelRpt",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -895,13 +1018,13 @@ sap.ui.define([
       if (period !== null) {
         var postBody = {};
         var that = this;
-        postBody.empId = '001602';
+        postBody.empId = sap.ui.getCore().userid;
         postBody.type = '02';
         postBody.year = period.substring(0, 4);
         postBody.quarter = period.substring(4, 6);
         var postJson = JSON.stringify(postBody);
         $.ajax({
-          url: "/ou/selectOrgId",
+          url: this.url + "/ou/selectOrgId",
           method: "POST",
           dataType: "json",
           data: postJson,
@@ -950,11 +1073,12 @@ sap.ui.define([
       var that = this;
       var bdinfo = this.getView().getModel("bdinfo").getData();
       postBody.org = this.byId("bdorgid").getValue();
-      postBody.year = this.byId("bdinfoperiod").getText().substring(0, 4);
-      postBody.quarter = this.byId("bdinfoperiod").getText().substring(4, 6);
+      postBody.year = this.byId("bdinfoperiod").getSelectedKey().substring(0, 4);
+      postBody.quarter = this.byId("bdinfoperiod").getSelectedKey().substring(4, 6);
+      postBody.effectiveDte = this.byId("bdeffectivedte").getSelectedKey();
       var postJson = JSON.stringify(postBody);
       $.ajax({
-        url: "/breakDown/getLstBd",
+        url: this.url + "/breakDown/getLstBd",
         method: "POST",
         dataType: "json",
         data: postJson,
@@ -966,7 +1090,7 @@ sap.ui.define([
           var tableData = that.getView().getModel("bd").getProperty("/OrgCollection");
           for (var i = 0; i < tableData.length; i++) {
             for (var j = 0; j < data.result.length; j++) {
-              if (tableData[i].org == data.result[j].org) {
+              if (tableData[i].orgId == data.result[j].org) {
                 tableData[i].class1 = data.result[j].class1;
                 tableData[i].class2 = data.result[j].class2;
                 tableData[i].class3 = data.result[j].class3;
@@ -1015,6 +1139,47 @@ sap.ui.define([
     },
     effectivedteChange: function (oEvent) {
       var effectiveDte = oEvent.getParameter("selectedItem").getKey();
+      //得到org quarter type year
+      var type = this.byId("comType").getSelectedKey();
+      var period = this.byId("bdinfoperiod").getSelectedKey();
+      var orgId = this.byId("bdorgid").getValue();
+
+      var that = this;
+      $.ajax({
+        url: this.url + "/breakDown/selectEmpBreakDownInfo/" + sap.ui.getCore().userid + "/" + type + "/" + orgId + "/" + period + "/" + effectiveDte,
+        method: "GET",
+        dataType: "json",
+        async: false,
+        success: function (data) {
+          if (data.success == true) {
+            var result = {};
+            result.OrgCollection = data.result;
+            // for (var i = 0; i < result.OrgCollection.length; i++) {
+            //   result.OrgCollection[i].dltotal = result.OrgCollection[i].class1 + result.OrgCollection[i].class2;
+            //   result.OrgCollection[i].idltotal = result.OrgCollection[i].class3 + result.OrgCollection[i].class4 + result.OrgCollection[i].class5 + result.OrgCollection[i].class6;
+            // }
+            // that.byId("bdeffectivedte").setSelectedItemId(data.result[0].effectiveDte); 
+
+            var compare = {};
+            compare.bdLstUpdDte = data.result[0].lstUpdDte;
+            compare.effectiveDte = data.result[0].effectiveDte;
+            that.getView().setModel(new JSONModel(compare), "compare");
+
+            that.getView().setModel(new JSONModel(result), "bd");
+            that.getView().getModel("footer").setProperty("/class1", 0);
+            that.getView().getModel("footer").setProperty("/class2", 0);
+            that.getView().getModel("footer").setProperty("/class3", 0);
+            that.getView().getModel("footer").setProperty("/class4", 0);
+            that.getView().getModel("footer").setProperty("/class5", 0);
+            that.getView().getModel("footer").setProperty("/class6", 0);
+            that.getView().getModel("footer").setProperty("/dltotal", 0);
+            that.getView().getModel("footer").setProperty("/idltotal", 0);
+          } else {
+          }
+        },
+        error: function () {
+        }
+      });
 
     }
   });

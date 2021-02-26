@@ -1,10 +1,10 @@
-ID: hcbreakdown
+ID: ztsmc_ec_app_hcbreakdown
 _schema-version: 3.2.0
 version: 0.0.1
 parameters:
   enable-parallel-deployments: true
 modules:
-  - name: hcbreakdown
+  - name: ztsmc_ec_app_hcbreakdown
     type: nodejs
     path: approuter
     parameters:
@@ -13,13 +13,7 @@ modules:
     requires:
       - name: headcount_destination
       - name: hcbreakdown_html5_repo_runtime
-      - name: hcbreakdown_uaa
-      - name: user_api
-        group: destinations
-        properties:
-          name: user_api
-          url: '~{url}'
-          forwardAuthToken: true
+      - name: hcbreakdown_uaa 
   - name: webapp_deployer
     type: com.sap.application.content
     path: deployer
@@ -41,14 +35,10 @@ modules:
       builder: custom
       commands:
         - npm run build:uimodule --prefix ..
-      supported-platforms: []
-  - name: user_breakdown
-    type: nodejs
-    path: user_breakdown
-    provides:
-      - name: user_api
-        properties:
-          url: '${default-url}'
+      supported-platforms: [] 
+    parameters:
+      disk-quota: 512M
+      memory: 512M
     requires:
       - name: hcbreakdown_uaa
 resources:

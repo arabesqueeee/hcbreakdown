@@ -10,10 +10,19 @@
   ],
   "role-templates": [
     {
-      "name": "EC_HCBreakdown",
+      "name": "SCP_Hcbreakdown",
       "description": "UAA",
       "scope-references": [
         "uaa.user"
+      ]
+    }
+  ],
+  "role-collections": [
+    {
+      "name": "SCP_Hcbreakdown",
+      "description": "SCP_Hcbreakdown (read)",
+      "role-template-references": [
+        "$XSAPPNAME.SCP_Hcbreakdown"
       ]
     }
   ]

@@ -8,14 +8,10 @@
     xmlns:ui="sap.ui.table"	>
     <App id="idAppControl" >
         <pages>
-            <Page
-        id="wizardContentPage"
-        showHeader="false">
+            <Page  id="wizardContentPage" showHeader="false">
                 <content>
                     <IconTabBar
-		id="idIconTabBar"
-		select="onFilterSelect"
-		class="sapUiResponsiveContentPadding">
+		id="idIconTabBar" select="onFilterSelect" 	class="sapUiResponsiveContentPadding">
                         <items>
                             <IconTabFilter
 				icon="sap-icon://begin"
@@ -23,7 +19,7 @@
 				text="年度提報"
 				key="yrequest" >
                                 <form:SimpleForm  layout="ResponsiveGridLayout" columnsXL="1" columnsL="1" columnsM="1">
-                                    <Label text="选择填报年度"  required="true" >
+                                    <Label text="Year"  required="true" >
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
@@ -38,12 +34,12 @@
                                             <l:GridData span="XL2 L2 M2 S12" />
                                         </layoutData>
                                     </ComboBox>
-                                    <Label text="組織單位"  required="true" >
+                                    <Label text="Org"  required="true" >
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <Input id="yreqorgid"  width="20%" value="{filter>/orgid}"  description="" 	showValueHelp="true" 	valueHelpRequest=".onValueHelpRpOrgid">
+                                    <Input id="yreqorgid"  width="20%" value="{filter>/orgid}" submit="orgHelpYearDialogCfm" 	showValueHelp="true" 	valueHelpRequest=".onValueHelpYROrgid">
                                         <layoutData>
                                             <l:GridData span="XL8 L8 M8 S12" />
                                         </layoutData>
@@ -52,7 +48,6 @@
                                 <ui:Table
                 	          rows="{yreq>/OrgCollection}"
                               visibleRowCount="{= ${yreq>/OrgCollection}.length}"
-				              
 				              selectionMode="Single" 
                               editable="true"
                               id="yrequestCollection"
@@ -60,8 +55,10 @@
                                     <ui:extension>
                                         <OverflowToolbar>
                                             <ToolbarSpacer/>
-                                            <Button icon="sap-icon://notes" press="onSaveYearReq" type="Transparent" id="onSaveYearReqDraft" text="暫存"/>
-                                            <Button icon="sap-icon://save" press="onSaveYearReq" type="Transparent" id="onSubmitYearReq" text="提交"/>
+                                          <!--<Button icon="sap-icon://validate" press="onYearCalculate"  type="Transparent" id="onYearCalculate" text="檢查"/>
+                                           -->   
+                                           <Button icon="sap-icon://notes" press="onSaveYearReq" type="Transparent" id="onSaveYearReqDraft" text="Save as draft"/>
+                                            <Button icon="sap-icon://save" press="onSaveYearReq" type="Transparent" id="onSubmitYearReq" text="Submit"/>
                                         </OverflowToolbar>
                                     </ui:extension>
                                     <ui:Column visible="false" >
@@ -71,121 +68,139 @@
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="4rem">
-                                        <Label text="年份" />
+                                        <Label text="Year" />
                                         <ui:template>
                                             <Text text="{yreq>year}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="3rem">
-                                        <Label text="季度" />
+                                        <Label text="Quarter" />
                                         <ui:template>
                                             <Text text="{yreq>quarter}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Code" />
                                         <ui:template>
                                             <Text text="{yreq>org}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Name" />
                                         <ui:template>
                                             <Text text="{yreq>orgName}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="12rem" visible = "false">
-                                        <Label text="DL Budget (上一季budget)" />
+                                    <ui:Column width="12rem" 
+                                    headerSpan="2,1"> 
+                                    	<ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
+
                                         <ui:template>
-                                            <Text text="{yreq>lstDlAdjust}"/>
+                                        <ObjectStatus text="{yreq>lstDlAdjust}" state="Information"/> 
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="12rem" visible = "false">
-                                        <Label text="IDL Budget (上一季budget)" />
+                                    <ui:Column width="12rem"  >
+                                        <ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)"/> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Text text="{yreq>lstIdlAdjust}"/>
+                                         <ObjectStatus text="{yreq>lstIdlAdjust}" state="Error"/> 
+                                        </ui:template>
+                                    </ui:Column>
+                                    <ui:Column width="12rem" headerSpan="2,1">
+                                    	<ui:multiLabels>
+                                        <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels> 
+                                        <ui:template>
+                                            <Input  value="{yreq>dlReqBudget}" 	 editable="{= ${yreq>status} !== 'Submit'}" type="Number"  	placeholder="輸入提報的數量"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="DL Budget (H/C request)" />
+                                        <ui:multiLabels>
+                                        <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels> 
                                         <ui:template>
-                                            <Input  value="{yreq>dlReqBudget}" 	type="Number"  	placeholder="輸入提報的數量"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="12rem">
-                                        <Label text="IDL Budget (H/C request)" />
-                                        <ui:template>
-                                            <Input  value="{yreq>idlReqBudget}"   type="Number"  	placeholder="輸入提報的數量"/>
+                                            <Input  value="{yreq>idlReqBudget}"  editable="{= ${yreq>status} !== 'Submit'}"  type="Number"  	placeholder="輸入提報的數量"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="DL Justification" />
+                                        	<ui:multiLabels>
+                                        <Label text="Justification" textAlign="Center"  width="100%"/> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels> 
                                         <ui:template>
-                                            <Input  value="{yreq>dlJustification}"/>
+                                            <Input  value="{yreq>dlJustification}" editable="{= ${yreq>status} !== 'Submit'}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="8rem">
-                                        <Label text="IDL Justification" />
+                                        <ui:multiLabels>
+                                        <Label text="Justification" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                        </ui:multiLabels>
                                         <ui:template>
-                                            <Input  value="{yreq>idlJustification}"/>
+                                            <Input  value="{yreq>idlJustification}" editable="{= ${yreq>status} !== 'Submit'}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="IDL Budget (調整)" />
+                                    
+                                    <ui:Column width="10rem"  >
+                                        <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" width="100%"/> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                        </ui:multiLabels>
+
                                         <ui:template>
-                                            <Text text="{yreq>idlAdjBudget}"/>
+                                         <ObjectStatus text="{yreq>dlBudgetProposal}" state="Information"/> 
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column  width="10rem" visible = "false">
-                                        <Label text="DL Budget (調整)" />
+                                    <ui:Column width="10rem"  > 
+                                    <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                        </ui:multiLabels>
                                         <ui:template>
-                                            <Text text="{yreq>dlAdjBudget}"/>
+                                         <ObjectStatus text="{yreq>idlBudgetProposal}" state="Error"/> 
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="DL Budget (Proposal)" />
-                                        <ui:template>
-                                            <Text text="{yreq>DlBudgetProposal}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="IDL Budget (Proposal)" />
-                                        <ui:template>
-                                            <Text text="{yreq>IDlBudgetProposal}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="8rem" visible = "false">
-                                        <Label text="DL Allowance" />
-                                        <ui:template>
-                                            <Text text="{yreq>dlAllowance}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="8rem" visible = "false">
-                                        <Label text="IDL Allowance" />
-                                        <ui:template>
-                                            <Text text="{yreq>idlAllowance}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="13rem" visible = "false">
-                                        <Label text="HC Budget (Proposal IDL+DL)" />
+                                     
+                                    <ui:Column width="13rem"  >
+                                        <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" /> 
+                                        <Label text="Total" textAlign="Center" /> 
+                                        </ui:multiLabels>
                                         <ui:template>
                                             <Text text="{yreq>prosalBudget}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="Actual DL" />
+                                      <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                        </ui:multiLabels> 
                                         <ui:template>
-                                            <Text text="{yreq>actualDl}"/>
+                                          <ObjectStatus text="{yreq>actualDl}" state="Information"/> 
+                                      
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="Actual IDL" />
-                                        <ui:template>
-                                            <Text text="{yreq>actualIdl}"/>
+                                        <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                        </ui:multiLabels> 
+                                        <ui:template> 
+                                          <ObjectStatus text="{yreq>actualIdl}" state="Error"/> 
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="8rem">
-                                        <Label text="Actual HC" />
+                                          <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="Total" textAlign="Center" /> 
+                                        </ui:multiLabels> 
                                         <ui:template>
                                             <Text text="{yreq>actualHc}"/>
                                         </ui:template>
@@ -198,7 +213,7 @@
 				text="季度提報"
 				key="qrequest" >
                                 <form:SimpleForm  layout="ResponsiveGridLayout" columnsXL="1" columnsL="1" columnsM="1">
-                                    <Label text="选择填报期间"  required="true" >
+                                    <Label text="Quarter"  required="true" >
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
@@ -213,7 +228,7 @@
                                             <l:GridData span="XL2 L2 M2 S12" />
                                         </layoutData>
                                     </ComboBox>
-                                    <Label text="組織單位"  required="true" >
+                                    <Label text="Org"  required="true" >
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
@@ -237,56 +252,63 @@
                                             <ToolbarSpacer/>
                                         </OverflowToolbar>
                                     </ui:extension>
-                                    <ui:Column visible="false" >
-                                        <Label text="id" />
-                                        <ui:template>
-                                            <Text text="{yref>empId}"/>
-                                        </ui:template>
-                                    </ui:Column>
+                                   
                                     <ui:Column  width="4rem">
-                                        <Label text="年份" />
+                                        <Label text="Year" />
                                         <ui:template>
                                             <Text text="{yref>year}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="3rem">
-                                        <Label text="季度" />
+                                        <Label text="Quarter" />
                                         <ui:template>
                                             <Text text="{yref>quarter}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Code" />
                                         <ui:template>
                                             <Text text="{yref>org}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Name" />
                                         <ui:template>
                                             <Text text="{yref>orgName}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="DL Budget (H/C request)" />
+                                        	<ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
                                             <Text  text="{yref>dlReqBudget}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="IDL Budget (H/C request)" />
+                                       	<ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
                                             <Text  text="{yref>idlReqBudget}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="DL Justification" />
+                                    <ui:multiLabels>
+                                         <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
                                             <Text  text="{yref>dlJustification}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="8rem">
-                                        <Label text="IDL Justification" />
+                                         <ui:multiLabels>
+                                         <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
                                             <Text  text="{yref>idlJustification}"/>
                                         </ui:template>
@@ -300,139 +322,145 @@
 				              ariaLabelledBy="title">
                                     <ui:extension>
                                         <OverflowToolbar>
-                                            <Title text="季度提報"/>
                                             <ToolbarSpacer/>
+                                            <Button icon="sap-icon://notes" press="onSaveQReq" type="Transparent" id="onSaveQReqDraft" text="暫存"/>
+                                            <Button icon="sap-icon://save" press="onSaveQReq" type="Transparent" id="onSubmitQReq" text="提交"/>
                                         </OverflowToolbar>
                                     </ui:extension>
-                                    <ui:extension>
-                                        <OverflowToolbar>
-                                            <ToolbarSpacer/>
-                                            <Button icon="sap-icon://notes" press="onSaveYearReq" type="Transparent" id="onSaveQReqDraft" text="暫存"/>
-                                            <Button icon="sap-icon://save" press="onSaveYearReq" type="Transparent" id="onSubmitQReq" text="提交"/>
-                                        </OverflowToolbar>
-                                    </ui:extension>
-                                    <ui:Column visible="false" >
-                                        <Label text="id" />
-                                        <ui:template>
-                                            <Text text="{qreq>empId}"/>
-                                        </ui:template>
-                                    </ui:Column>
+                                   
                                     <ui:Column  width="4rem">
-                                        <Label text="年份" />
+                                        <Label text="Year" />
                                         <ui:template>
                                             <Text text="{qreq>year}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="3rem">
-                                        <Label text="季度" />
+                                        <Label text="Quarter" />
                                         <ui:template>
                                             <Text text="{qreq>quarter}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Code" />
                                         <ui:template>
                                             <Text text="{qreq>org}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="7rem">
-                                        <Label text="組織單位" />
+                                        <Label text="Org. Name" />
                                         <ui:template>
                                             <Text text="{qreq>orgName}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="DL Budget (上一季budget)" />
+                                       	<ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Text text="{qreq>lstDlAdjust}" />
+                                         <ObjectStatus text="{yreq>lstDlAdjust}" state="Information"/>  
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="IDL Budget (上一季budget)" />
-                                        <ui:template>
-                                            <Text text="{qreq>lstIdlAdjust}"/>
+                                       	<ui:multiLabels>
+                                        <Label text="H/C Budget(Previous Quarter)(a)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
+                                        <ui:template> 
+                                         <ObjectStatus text="{yreq>lstIdlAdjust}" state="Error"/>   
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="DL Budget (H/C request)" />
+                                        	<ui:multiLabels>
+                                        <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Input  value="{qreq>dlReqBudget}" 	type="Number"  	placeholder="輸入提報的數量"/>
+                                            <Input  value="{qreq>dlReqBudget}" 	type="Number"  editable="{= ${qreq>status} !== 'Submit'}"	placeholder="輸入提報的數量"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="12rem">
-                                        <Label text="IDL Budget (H/C request)" />
+                                       	<ui:multiLabels>
+                                        <Label text="H/C Request(b)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Input  value="{qreq>idlReqBudget}"   type="Number"  	placeholder="輸入提報的數量"/>
+                                            <Input  value="{qreq>idlReqBudget}"   type="Number"  editable="{= ${qreq>status} !== 'Submit'}"	placeholder="輸入提報的數量"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="DL Justification" />
+                                     	<ui:multiLabels>
+                                        <Label text="Justification" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Input  value="{qreq>dlJustification}"/>
+                                            <Input  value="{qreq>dlJustification}" editable="{= ${qreq>status} !== 'Submit'}"/>
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="8rem">
-                                        <Label text="IDL Justification" />
+                                        <ui:multiLabels>
+                                        <Label text="Justification" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                    	</ui:multiLabels>
                                         <ui:template>
-                                            <Input  value="{qreq>idlJustification}"/>
+                                            <Input  value="{qreq>idlJustification}" editable="{= ${qreq>status} !== 'Submit'}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="IDL Budget (調整)" />
+                                   
+                                   <ui:Column width="10rem"  >
+                                        <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                        </ui:multiLabels> 
                                         <ui:template>
-                                            <Text text="{qreq>IDlBudgetAdjust}"/>
+                                          <ObjectStatus text="{yreq>dlBudgetProposal}" state="Information"/>   
+                                     
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column  width="10rem" visible = "false">
-                                        <Label text="DL Budget (調整)" />
-                                        <ui:template>
-                                            <Text text="{qreq>DlBudgetAdjust}"/>
+                                    <ui:Column width="10rem"  > 
+                                    <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                        </ui:multiLabels>
+                                        <ui:template> 
+                                          <ObjectStatus text="{yreq>idlBudgetProposal}" state="Error"/>    
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="DL Budget (Proposal)" />
+                                     
+                                    <ui:Column width="13rem"  >
+                                        <ui:multiLabels>
+                                        <Label text="H/C Budget Proposal(a)+(b)" textAlign="Center" /> 
+                                        <Label text="Total" textAlign="Center" /> 
+                                        </ui:multiLabels>
                                         <ui:template>
-                                            <Text text="{qreq>DlBudgetProposal}"/>
+                                            <Text text="{qreq>prosalBudget}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column width="10rem" visible = "false">
-                                        <Label text="IDL Budget (Proposal)" />
+                                    
+
+                                    <ui:Column  width="8rem">
+                                      <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="DL" textAlign="Center" /> 
+                                        </ui:multiLabels> 
                                         <ui:template>
-                                            <Text text="{qreq>IDlBudgetProposal}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="8rem" visible = "false">
-                                        <Label text="DL Allowance" />
-                                        <ui:template>
-                                            <Text text="{qreq>dlAllowance}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="8rem" visible = "false">
-                                        <Label text="IDL Allowance" />
-                                        <ui:template>
-                                            <Text text="{qreq>iDlAllowance}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column width="13rem" visible = "false">
-                                        <Label text="HC Budget (Proposal IDL+DL)" />
-                                        <ui:template>
-                                            <Text text="{qreq>xxx}"/>
+                                           <ObjectStatus text="{yreq>actualDl}" state="Information"/>    
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column  width="8rem">
-                                        <Label text="Actual DL" />
-                                        <ui:template>
-                                            <Text text="{qreq>actualDl}"/>
-                                        </ui:template>
-                                    </ui:Column>
-                                    <ui:Column  width="8rem">
-                                        <Label text="Actual IDL" />
-                                        <ui:template>
-                                            <Text text="{qreq>actualIdl}"/>
+                                          <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="IDL" textAlign="Center" /> 
+                                        </ui:multiLabels> 
+                                        <ui:template> 
+                                           <ObjectStatus text="{yreq>actualIdl}" state="Error"/>  
                                         </ui:template>
                                     </ui:Column>
                                     <ui:Column width="8rem">
-                                        <Label text="Actual HC" />
+                                           <ui:multiLabels>
+                                        <Label text="Actual H/C(as of today)" textAlign="Center" /> 
+                                        <Label text="Total" textAlign="Center" /> 
+                                        </ui:multiLabels> 
                                         <ui:template>
                                             <Text text="{qreq>actualHc}"/>
                                         </ui:template>
@@ -462,8 +490,8 @@
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <ComboBox id = "bdinfoperiod"   
-                                     
+                                    <ComboBox id = "bdinfoperiod"    
+                                    selectionChange="bdPeriodChange"
                                     items="{
 					                        path: 'bdperiod>/list' 
 			                        	}">
@@ -504,7 +532,7 @@
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <Text text="{bdinfo>/finalDL}">
+                                    <Text text="{bdinfo>/finalDLBreakdown}">
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
@@ -514,7 +542,7 @@
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
                                     </Label>
-                                    <Text text="{bdinfo>/finalIDL}">
+                                    <Text text="{bdinfo>/finalIDLBreakdown}">
                                         <layoutData>
                                             <l:GridData span="XL1 L1 M1 S12" />
                                         </layoutData>
@@ -523,100 +551,134 @@
                                 <ui:Table
                 	          rows="{bd>/OrgCollection}"
                               visibleRowCount="{= ${bd>/OrgCollection}.length}"
-				              selectionMode="Single" 
+				              selectionMode="None" 
                               id="bdownCollection"
 				              ariaLabelledBy="title">
                                     <ui:extension>
                                         <OverflowToolbar class="sapMTBHeader-CTX">
                                             <ToolbarSpacer/>
-                                            <Button icon="sap-icon://validate" press="bdCalculate"  type="Transparent" id="onCalculate" text="檢查"/>
+                                            <Button icon="sap-icon://validate" press="onExceedCheck"  type="Transparent" id="onExceedCheck" text="檢查"/>
                                             <Button icon="sap-icon://copy" press="onCopyFrom"  type="Transparent" id="onCopyFrom" text="複製上一條"/>
                                             <Button icon="sap-icon://save" press="onSaveBd" type="Transparent" id="onSaveBd" text="保存"/>
                                         </OverflowToolbar>
                                     </ui:extension>
                                     <ui:footer>
-                                        <l:HorizontalLayout>
-                                            <Text text="合計" width="10em"/>
-                                            <Text text=""  width="8em"/>
-                                            <Text text=""  width="8em"/>
-                                            <Text text=""  width="8em"/>
-                                            <Text id ="class1" text="{footer>/class1}"  width="8em"/>
-                                            <Text id ="class2" text="{footer>/class2}"   width="8em"/>
-                                            <Text id ="class3" text="{footer>/class3}"  width="8em"/>
-                                            <Text id ="class4" text="{footer>/class4}"  width="8em"/>
-                                            <Text id ="class5" text="{footer>/class5}"  width="8em"/>
-                                            <Text id ="class6" text="{footer>/class6}"  width="8em"/>
-                                            <Text id="dltoal"  text="{footer>/dltotal}" width="8em"/>
-                                            <Text id="idltotal"  text="{footer>/idltotal}" width="8em"/>
-                                        </l:HorizontalLayout>
+                                        <form:SimpleForm id="SimpleFormToolbar"
+                                            	layout="ResponsiveGridLayout" 	ariaLabelledBy="Title1" >
+                                            <Text text="合計"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL4 L4 M4 S4" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class1" text="{footer>/class1}"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class2" text="{footer>/class2}"    >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class3" text="{footer>/class3}" >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class4" text="{footer>/class4}"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class5" text="{footer>/class5}"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id ="class6" text="{footer>/class6}"   >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id="dltoal"  text="{footer>/dltotal}"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                            <Text id="idltotal"  text="{footer>/idltotal}"  >
+                                                <layoutData>
+                                                    <l:GridData span="XL1 L1 M1 S1" />
+                                                </layoutData>
+                                            </Text>
+                                        </form:SimpleForm>
                                     </ui:footer>
-                                    <ui:Column  >
+                                    <ui:Column width="4%" >
                                         <Label text="年份" />
                                         <ui:template>
                                             <Text text="{bd>year}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column  >
+                                    <ui:Column  width="4%">
                                         <Label text="季度" />
                                         <ui:template>
                                             <Text text="{bd>quarter}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="12%">
                                         <Label text="組織單位" />
                                         <ui:template>
                                             <Text text="{bd>orgId}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="10%">
                                         <Label text="組織單位" />
                                         <ui:template>
                                             <Text text="{bd>orgName}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="60" />
                                         <ui:template>
                                             <Input id="iclass1" valueState="{vsdl>/state}" value="{bd>class1}" type="Number" />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="6X" />
                                         <ui:template>
                                             <Input id="iclass2" valueState="{vsdl>/state}"  value="{bd>class2}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="7%">
                                         <Label text="2X" />
                                         <ui:template>
                                             <Input  id="iclass3" valueState="{vsidl>/state}"  value="{bd>class3}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="3X" />
                                         <ui:template>
                                             <Input  id="iclass4"  valueState="{vsidl>/state}"  value="{bd>class4}" type="Number" />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="MGR" />
                                         <ui:template>
                                             <Input id="iclass5" valueState="{vsidl>/state}"  value="{bd>class5}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="EXE"/>
                                         <ui:template>
                                             <Input id="iclass6" valueState="{vsidl>/state}"  value="{bd>class6}" type="Number"  />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="8%">
                                         <Label text="DL Total" />
                                         <ui:template>
                                             <Text  text="{bd>dltotal}"  />
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column >
+                                    <ui:Column width="10%">
                                         <Label text="IDL Total"  />
                                         <ui:template>
                                             <Text  text="{bd>idltotal}"  />
@@ -724,6 +786,24 @@
                                             <Text text="{rpt>orgName}"/>
                                         </ui:template>
                                     </ui:Column>
+                                    <ui:Column  width="7rem">
+                                        <Label text="狀態" />
+                                        <ui:template>
+                                            <Text text="{rpt>status}"/>
+                                        </ui:template>
+                                    </ui:Column>
+                                    <ui:Column  width="7rem">
+                                        <Label text="預設填報人" />
+                                        <ui:template>
+                                            <Text text="{rpt>userName}"/>
+                                        </ui:template>
+                                    </ui:Column>
+                                    <ui:Column  width="7rem">
+                                        <Label text="填報日期" />
+                                        <ui:template>
+                                            <Text text="{=${rpt>lstUpdDte}.substr(0,10)}"/>
+                                        </ui:template>
+                                    </ui:Column>
                                     <ui:Column width="12rem" >
                                         <Label text="DL Budget (上一季budget)" />
                                         <ui:template>
@@ -748,7 +828,7 @@
                                             <Text  text="{rpt>idlReqBudget}"/>
                                         </ui:template>
                                     </ui:Column>
-                                    <ui:Column  width="8rem">
+                                    <!--<ui:Column  width="8rem">
                                         <Label text="DL Justification" />
                                         <ui:template>
                                             <Text  text="{rpt>dlJustification}"/>
@@ -759,7 +839,7 @@
                                         <ui:template>
                                             <Text  text="{rpt>idlJustification}"/>
                                         </ui:template>
-                                    </ui:Column>
+                                    </ui:Column>-->
                                     <ui:Column width="10rem">
                                         <Label text="DL Budget (調整)" />
                                         <ui:template>

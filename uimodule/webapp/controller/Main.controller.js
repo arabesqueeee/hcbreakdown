@@ -14,12 +14,15 @@ sap.ui.define([
     onInit: function () {
 
       //change local or cloud
-      this.local = false;
-      this.cloud = true;
+      //this.local = false;
+     //this.cloud = true;
+
+      this.local = true;
+      this.cloud = false;
 
       if (this.local) {
         this.url = "http://127.0.0.1:10019";
-        sap.ui.getCore().userid = 'wang.yiqiong@accenture.com';
+        sap.ui.getCore().userid = '800003';
       } else {
         this.url = "";
       }
@@ -56,7 +59,36 @@ sap.ui.define([
       this.getView().setModel(new JSONModel(obk3), "status");
       this.getView().setModel(new JSONModel(obk3), "type");
 
+      $.ajax({
+        url: "/user-api/currentUser",
+        method: "GET",
+        dataType: "json",
+        async: false,
+        success: function (data) {
+          sap.ui.getCore().userid = data.email;
+        },
+        error: function () {
+        }
+      });
 
+      if (sap.ui.getCore().userid != undefined) {
+        $.ajax(
+          {
+            url: this.url + "/ecuser/getEmpId/" + sap.ui.getCore().userid,
+            method: "GET",
+            dataType: "json",
+            async: false,
+            beforeSend: function (xhr) {
+              xhr.setRequestHeader("Content-Type", "application/json");
+            },
+            success: function (data) {
+              sap.ui.getCore().userid = data.result.empId;
+            },
+            error: function () {
+
+            }
+          });
+      }
       var postBody = {};
       postBody.type = '01';
       postBody.empId = sap.ui.getCore().userid;
@@ -102,38 +134,117 @@ sap.ui.define([
 
       this.getView().setModel(new JSONModel(vs), "vsdl");
       this.getView().setModel(new JSONModel(vs), "vsidl");
+      
+     
+    },
+    onSaveQReq:function(oEvent){
+      var dialog = new sap.m.BusyDialog({
+        text: "提交中"
+      });
+      var status = '';
+      dialog.open();
+      if (oEvent.getParameters("id").id.search("Draft") != -1) {
+        status = '02';
+      } else {
+        status = '03';
+      }
+      var tableData = this.getView().getModel("qreq").getProperty("/OrgCollection");
+     
+      var postData = [], postLog = [];
+      for (var i = 0; i < tableData.length; i++) {
+        var pieceJsn = {}, pieceLog = {};
+        pieceJsn.dlAdjBudget = tableData[i].dlAdjBudget;
+        pieceJsn.dlAllowance = tableData[i].dlAllowance;
+        pieceJsn.dlJustification = tableData[i].dlJustification;
+        pieceJsn.dlReqBudget = tableData[i].dlReqBudget;
+        pieceJsn.empId = tableData[i].empId;
+        pieceJsn.idlAdjBudget = tableData[i].idlAdjBudget;
+        pieceJsn.idlAllowance = tableData[i].idlAllowance;
+        pieceJsn.idlJustification = tableData[i].idlJustification;
+        pieceJsn.idlReqBudget = tableData[i].idlReqBudget;
+        pieceJsn.lstUpdUsr = sap.ui.getCore().userid;
+        pieceJsn.org = tableData[i].org;
+        pieceJsn.quarter = tableData[i].quarter;
+        pieceJsn.status = status; //02-Draft,03-Submit
+        pieceJsn.type = tableData[i].type;
+        pieceJsn.year = tableData[i].year;
+        postData.push(pieceJsn);
 
+        pieceLog.year = tableData[i].year;
+        pieceLog.quarter = tableData[i].quarter;
+        switch (pieceLog.quarter) {
+          case 'Q1':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '01-01';
+            break;
+          case 'Q2':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '04-01';
+            break;
+          case 'Q3':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '07-01';
+            break;
+          case 'Q4':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '10-01';
+            break;
+          default:
+        }
+        pieceLog.org = tableData[i].org;
+        pieceLog.type = "01";
+        pieceLog.finalDL = this.custParseInt(tableData[i].dlReqBudget);
+        pieceLog.finalIDL = this.custParseInt(tableData[i].idlReqBudget);
+        pieceLog.lstUpdUsr = sap.ui.getCore().userid;
+        postLog.push(pieceLog);
+
+      }
+      var postJson = JSON.stringify(postData);
+      var postJsonLog = JSON.stringify(postLog);
+      var that = this;
       $.ajax({
-        url: "/user-api/currentUser",
-        method: "GET",
+        url: this.url + "/ou/batchSave",
+        method: "POST",
         dataType: "json",
-        async: false,
+        data: postJson,
+        async: true,
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Content-Type", "application/json");
+        },
         success: function (data) {
-          sap.ui.getCore().userid = data.email;
+          dialog.close();
+          MessageToast.show("保存成功");
+
+         /*var tableData = that.getView().getModel("qreq").getProperty("/OrgCollection");
+         for(var i=0; i<tableData.length;i++){
+          tableData[i].status = '03';
+         } */
+         that.getView().getModel("qreq").setProperty("/OrgCollection",data.result);
+         that.getView().getModel("qreq").refresh(); 
         },
         error: function () {
+          dialog.close();
+          MessageToast.show("保存失敗");
         }
       });
 
-      if (sap.ui.getCore().userid != undefined) {
-        $.ajax(
-          {
-            url: this.url + "/ecuser/getEmpId/" + sap.ui.getCore().userid,
-            method: "GET",
+      //Batch save ouAdjust
+      //暫存時不保存上季度數據
+    /*  if (status == '03') {
+        if (postLog.length > 0) {
+          $.ajax({
+            url: this.url + "/ouadjust/batchSave",
+            method: "POST",
             dataType: "json",
+            data: postJsonLog,
             async: false,
             beforeSend: function (xhr) {
               xhr.setRequestHeader("Content-Type", "application/json");
             },
             success: function (data) {
-              sap.ui.getCore().userid = data.result.empId;
+              
             },
             error: function () {
-
             }
           });
-      }
-
+        }
+      }*/
     },
     onSaveYearReq: function (oEvent) {
       var dialog = new sap.m.BusyDialog({
@@ -146,17 +257,11 @@ sap.ui.define([
       } else {
         status = '03';
       }
-      var tableData;
-      if (oEvent.getParameters("id").id.search("onSubmitQReq") != -1) {
-        tableData = this.getView().getModel("qreq").getProperty("/OrgCollection");
-
-      } else {
+      var tableData =
         tableData = this.getView().getModel("yreq").getProperty("/OrgCollection");
-
-      }
-      var postData = [];
+      var postData = [], postLog = [];
       for (var i = 0; i < tableData.length; i++) {
-        var pieceJsn = {};
+        var pieceJsn = {}, pieceLog = {};
         pieceJsn.dlAdjBudget = tableData[i].dlAdjBudget;
         pieceJsn.dlAllowance = tableData[i].dlAllowance;
         pieceJsn.dlJustification = tableData[i].dlJustification;
@@ -166,7 +271,7 @@ sap.ui.define([
         pieceJsn.idlAllowance = tableData[i].idlAllowance;
         pieceJsn.idlJustification = tableData[i].idlJustification;
         pieceJsn.idlReqBudget = tableData[i].idlReqBudget;
-        pieceJsn.lstUpdUsr = "WANGYIQIONG"
+        pieceJsn.lstUpdUsr = sap.ui.getCore().userid;
         pieceJsn.org = tableData[i].org;
         pieceJsn.quarter = tableData[i].quarter;
         pieceJsn.status = status; //02-Draft,03-Submit
@@ -174,21 +279,53 @@ sap.ui.define([
         pieceJsn.year = tableData[i].year;
         postData.push(pieceJsn);
 
+        pieceLog.year = tableData[i].year;
+        pieceLog.quarter = tableData[i].quarter;
+        switch (pieceLog.quarter) {
+          case 'Q1':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '01-01';
+            break;
+          case 'Q2':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '04-01';
+            break;
+          case 'Q3':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '07-01';
+            break;
+          case 'Q4':
+            pieceLog.effectiveDte = pieceLog.year + '-' + '10-01';
+            break;
+          default:
+        }
+        pieceLog.org = tableData[i].org;
+        pieceLog.type = "01";
+        pieceLog.finalDL = this.custParseInt(tableData[i].dlReqBudget);
+        pieceLog.finalIDL = this.custParseInt(tableData[i].idlReqBudget);
+        pieceLog.lstUpdUsr = sap.ui.getCore().userid;
+        postLog.push(pieceLog);
+
       }
       var postJson = JSON.stringify(postData);
-
+      var postJsonLog = JSON.stringify(postLog);
+      var that = this;
       $.ajax({
         url: this.url + "/ou/batchSave",
         method: "POST",
         dataType: "json",
         data: postJson,
-        async: false,
+        async: true,
         beforeSend: function (xhr) {
           xhr.setRequestHeader("Content-Type", "application/json");
         },
         success: function (data) {
           dialog.close();
           MessageToast.show("保存成功");
+
+        /* var tableData = that.getView().getModel("yreq").getProperty("/OrgCollection");
+         for(var i=0; i<tableData.length;i++){
+          tableData[i].status = '03';
+         } */
+         that.getView().getModel("yreq").setProperty("/OrgCollection",data.result);
+         that.getView().getModel("yreq").refresh();
         },
         error: function () {
           dialog.close();
@@ -196,6 +333,27 @@ sap.ui.define([
         }
       });
 
+      //Batch save ouAdjust
+      //暫存時不保存上季度數據
+     /*if (status == '03') {
+        if (postLog.length > 0) {
+          $.ajax({
+            url: this.url + "/ouadjust/batchSave",
+            method: "POST",
+            dataType: "json",
+            data: postJsonLog,
+            async: false,
+            beforeSend: function (xhr) {
+              xhr.setRequestHeader("Content-Type", "application/json");
+            },
+            success: function (data) {
+              
+            },
+            error: function () {
+            }
+          });
+        }
+      }*/
     },
     typeChangeBreakDown: function (oEvent) {
       var type = this.getView().byId("comType").getSelectedItem().getKey();
@@ -446,8 +604,13 @@ sap.ui.define([
     orgHelpYearDialogCfm: function (oEvent) {
 
       var oSelectedItem = oEvent.getParameter("selectedItem");
-      var orgId = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
-      this.byId("yreqorgid").setValue(orgId);
+      if(oSelectedItem == undefined){
+        var orgId = this.byId("yreqorgid").getValue(); 
+      }else{
+        var orgId = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
+        this.byId("yreqorgid").setValue(orgId); 
+      }
+      
 
       var year = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year;
 
@@ -456,7 +619,7 @@ sap.ui.define([
       postBody.type = '01';
       postBody.empId = sap.ui.getCore().userid;
       postBody.year = year;
-      postBody.orgId = orgId;
+      postBody.org = orgId;
 
       var postJson = JSON.stringify(postBody);
 
@@ -474,7 +637,10 @@ sap.ui.define([
             var result = {};
             result.OrgCollection = data.result;
             that.getView().setModel(new JSONModel(result), "yreq");
+            sap.ui.getCore().yreqData = JSON.parse(JSON.stringify(data.result));
+
             that.byId("yrequestCollection").setVisible(true);
+            that.onYearCalculate();
           } else {
           }
         },
@@ -482,11 +648,21 @@ sap.ui.define([
         }
       });
     },
+    bdPeriodChange:function(){
+      this.orgHelpDialogConfirm();
+    },
+
     orgHelpDialogConfirm: function (oEvent) {
-      var oSelectedItem = oEvent.getParameter("selectedItem");
-      var orgId = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
-      var period = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year + oSelectedItem.getBindingContext("orgIdHelp").getProperty().quarter;
-      this.byId("bdorgid").setValue(orgId);
+      var period,orgId;
+      if(oEvent == undefined){
+        orgId = this.byId("bdorgid").getValue();
+        period = this.byId("bdinfoperiod").getSelectedKey();
+      }else{
+        var oSelectedItem = oEvent.getParameter("selectedItem");
+         orgId = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
+         period = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year + oSelectedItem.getBindingContext("orgIdHelp").getProperty().quarter;
+        this.byId("bdorgid").setValue(orgId);
+      }
       var type = this.byId("comType").getSelectedKey();
       var that = this;
       $.ajax({
@@ -514,16 +690,23 @@ sap.ui.define([
             compare.bdLstUpdDte = data.result[0].lstUpdDte;
             compare.effectiveDte = data.result[0].effectiveDte;
             that.getView().setModel(new JSONModel(compare), "compare");
-
             that.getView().setModel(new JSONModel(result), "bd");
-            that.getView().getModel("footer").setProperty("/class1", 0);
-            that.getView().getModel("footer").setProperty("/class2", 0);
-            that.getView().getModel("footer").setProperty("/class3", 0);
-            that.getView().getModel("footer").setProperty("/class4", 0);
-            that.getView().getModel("footer").setProperty("/class5", 0);
-            that.getView().getModel("footer").setProperty("/class6", 0);
-            that.getView().getModel("footer").setProperty("/dltotal", 0);
-            that.getView().getModel("footer").setProperty("/idltotal", 0);
+            if(that.getView().getModel("footer") !== undefined){
+              that.getView().getModel("footer").setProperty("/class1", 0);
+              that.getView().getModel("footer").setProperty("/class2", 0);
+              that.getView().getModel("footer").setProperty("/class3", 0);
+              that.getView().getModel("footer").setProperty("/class4", 0);
+              that.getView().getModel("footer").setProperty("/class5", 0);
+              that.getView().getModel("footer").setProperty("/class6", 0);
+              that.getView().getModel("footer").setProperty("/dltotal", 0);
+              that.getView().getModel("footer").setProperty("/idltotal", 0);
+             
+            }
+           
+            //set  
+            that.getView().getModel("vsdl").setProperty("/state", "None");
+            that.getView().getModel("vsidl").setProperty("/state", "None");
+            that.bdCalculate();
           } else {
           }
         },
@@ -532,9 +715,13 @@ sap.ui.define([
       });
 
       var postBody = {};
-      postBody.year = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year;
-      postBody.quarter = oSelectedItem.getBindingContext("orgIdHelp").getProperty().quarter;
-      postBody.org = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
+    //  postBody.year = oSelectedItem.getBindingContext("orgIdHelp").getProperty().year;
+      //postBody.quarter = oSelectedItem.getBindingContext("orgIdHelp").getProperty().quarter;
+      //postBody.org = oSelectedItem.getBindingContext("orgIdHelp").getProperty().org;
+      postBody.year = period.substring(0,4);
+      postBody.quarter = period.substring(4,6);
+      postBody.org = orgId;
+      postBody.type = this.getView().byId("comType").getSelectedKey();
       var postJson = JSON.stringify(postBody);
 
       //获取当前季度所有的breakdown的生效日期  
@@ -758,40 +945,40 @@ sap.ui.define([
       // tableData = this.getView().getModel("bd").getProperty("/OrgCollection");
       this.getView().setModel(new JSONModel(footer), "footer");
 
-      this.onValidCheck();
+     // this.onValidCheck();
 
     },
     onValidCheck: function () {
       //compare
 
       var bdinfo = this.getView().getModel("bdinfo").getData();
-      if (bdinfo.finalDL !== null & bdinfo.finalDL !== '') {
-        var finalDL = parseInt(bdinfo.finalDL);
+      if (bdinfo.finalDLBreakdown !== null & bdinfo.finalDLBreakdown !== '') {
+        var finalDLBreakdown = parseInt(bdinfo.finalDLBreakdown);
       } else {
-        finalDL = 0;
+        finalDLBreakdown = 0;
       }
 
-      if (bdinfo.finalIDL !== null & bdinfo.finalIDL !== '') {
-        var finalIDL = parseInt(bdinfo.finalIDL);
+      if (bdinfo.finalIDLBreakdown !== null & bdinfo.finalIDLBreakdown !== '') {
+        var finalIDLBreakdown = parseInt(bdinfo.finalIDLBreakdown);
       } else {
-        finalIDL = 0;
+        finalIDLBreakdown = 0;
       }
       var footer;
-      if (this.getView().getModel("footer") != undefined) {
-        footer = this.getView().getModel("footer").getData();
-      } else {
+     // if (this.getView().getModel("footer") != undefined) {
+     //   footer = this.getView().getModel("footer").getData();
+     // } else {
         this.bdCalculate();
         footer = this.getView().getModel("footer").getData();
-      }
+   //   }
 
-      if (footer.idltotal > finalIDL) {
+      if (footer.idltotal > finalIDLBreakdown) {
         this.getView().getModel("vsidl").setProperty("/state", "Error")
         return false;
       } else {
         this.getView().getModel("vsidl").setProperty("/state", "None")
       }
 
-      if (footer.dltotal > finalDL) {
+      if (footer.dltotal > finalDLBreakdown) {
         this.getView().getModel("vsdl").setProperty("/state", "Error")
         return false;
       } else {
@@ -799,6 +986,14 @@ sap.ui.define([
       }
 
       return true;
+    },
+    onExceedCheck:function(){
+      
+      var sign = this.onValidCheck();
+      if (sign == false) {
+        MessageToast.show("檢查有誤");
+        return;
+      }
     },
     onSaveBd: function () {
       var sign = this.onValidCheck();
@@ -852,9 +1047,7 @@ sap.ui.define([
         });
       }
     },
-    onValueHelpRpOrgid: function () {
 
-    },
     onValueHelpYROrgid: function (oEvent) {
       var sInputValue = oEvent.getSource().getValue();
       this.inputId = oEvent.getSource().getId();
@@ -866,6 +1059,8 @@ sap.ui.define([
         postBody.empId = sap.ui.getCore().userid;
         postBody.year = year;
         postBody.type = '01'
+        postBody.org = sInputValue;
+
         var postJson = JSON.stringify(postBody);
 
         $.ajax({
@@ -899,6 +1094,7 @@ sap.ui.define([
         this.YearOrgDialog.open();
       } else {
         //提示
+
       }
     },
     onValueHelpRptOrg: function (oEvent) {
@@ -950,6 +1146,10 @@ sap.ui.define([
       this.byId("orgid").setDescription(orgName);
     },
     onSearch: function () {
+      var dialog = new sap.m.BusyDialog({
+        text: "查詢中"
+        });
+        dialog.open();
       //check 类型和年度
       var type = this.byId("comType1").getSelectedKey();
       var year = this.byId("year").getDateValue().getFullYear();
@@ -977,6 +1177,7 @@ sap.ui.define([
           xhr.setRequestHeader("Content-Type", "application/json");
         },
         success: function (data) {
+          dialog.close();
           if (data.success == true) {
             var result = {};
             result.OrgCollection = data.result;
@@ -991,15 +1192,17 @@ sap.ui.define([
             }
             that.getView().setModel(new JSONModel(result), "rpt");
           } else {
+            MessageToast.show(data.message);
           }
         },
         error: function () {
+          dialog.close();
         }
       });
 
     },
     custParseInt: function (num) {
-      if (num == null || num == '') {
+      if (num == null || num == '' || num == undefined) {
         return 0;
       } else {
         return parseInt(num);
@@ -1022,6 +1225,7 @@ sap.ui.define([
         postBody.type = '02';
         postBody.year = period.substring(0, 4);
         postBody.quarter = period.substring(4, 6);
+        postBody.org = oEvent.getParameter("value");
         var postJson = JSON.stringify(postBody);
         $.ajax({
           url: this.url + "/ou/selectOrgId",
@@ -1165,21 +1369,77 @@ sap.ui.define([
             compare.effectiveDte = data.result[0].effectiveDte;
             that.getView().setModel(new JSONModel(compare), "compare");
 
-            that.getView().setModel(new JSONModel(result), "bd");
-            that.getView().getModel("footer").setProperty("/class1", 0);
-            that.getView().getModel("footer").setProperty("/class2", 0);
-            that.getView().getModel("footer").setProperty("/class3", 0);
-            that.getView().getModel("footer").setProperty("/class4", 0);
-            that.getView().getModel("footer").setProperty("/class5", 0);
-            that.getView().getModel("footer").setProperty("/class6", 0);
-            that.getView().getModel("footer").setProperty("/dltotal", 0);
-            that.getView().getModel("footer").setProperty("/idltotal", 0);
+            if(that.getView().getModel("footer") !== undefined){
+              that.getView().getModel("footer").setProperty("/class1", 0);
+              that.getView().getModel("footer").setProperty("/class2", 0);
+              that.getView().getModel("footer").setProperty("/class3", 0);
+              that.getView().getModel("footer").setProperty("/class4", 0);
+              that.getView().getModel("footer").setProperty("/class5", 0);
+              that.getView().getModel("footer").setProperty("/class6", 0);
+              that.getView().getModel("footer").setProperty("/dltotal", 0);
+              that.getView().getModel("footer").setProperty("/idltotal", 0);
+             
+            }
+            //set  
+            that.getView().getModel("vsdl").setProperty("/state", "None");
+            that.getView().getModel("vsidl").setProperty("/state", "None");
+            that.bdCalculate();
+
           } else {
           }
         },
         error: function () {
         }
       });
+
+    },
+    onYearCalculate: function () {
+
+      var dbData = sap.ui.getCore().yreqData;
+
+      var tableData = this.getView().getModel("yreq").getProperty("/OrgCollection");
+      for (var i = 0; i < tableData.length; i++) {
+        
+        tableData[i].idlBudgetProposal = tableData[i].lstIdlAdjust
+          + this.custParseInt(tableData[i].idlReqBudget);
+        tableData[i].dlBudgetProposal = tableData[i].lstDlAdjust
+          + this.custParseInt(tableData[i].dlReqBudget);
+
+        tableData[i].prosalBudget = tableData[i].idlBudgetProposal + tableData[i].dlBudgetProposal;
+
+        //
+      }
+      this.getView().getModel("yreq").setProperty("/OrgCollection", tableData);
+
+
+    },
+    readLstAdjust: function (quarter, tableData) {
+      var lstQuarter;
+      if (quarter == "Q4") {
+        lstQuarter = "Q3";
+      } else if (quarter == "Q3") {
+        lstQuarter = "Q2";
+      } else if (quarter == "Q2") {
+        lstQuarter = "Q1";
+      }
+      for (var i = 0; i < tableData.length; i++) {
+        if (tableData[i].quarter == lstQuarter) {
+          return tableData[i];
+        } else {
+          continue;
+        }
+      }
+      return 0;
+    },
+    readDBData: function (quarter, tableData) {
+      for (var i = 0; i < tableData.length; i++) {
+        if (tableData[i].quarter == quarter) {
+          return tableData[i];
+        } else {
+          continue;
+        }
+      }
+      return 0;
 
     }
   });
